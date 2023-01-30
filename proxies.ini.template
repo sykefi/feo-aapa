@@ -1,0 +1,3 @@
+[PROXIES]
+HTTP_PROXY=http://<hostname>:port
+HTTPS_PROXY=http://<hostname>:port

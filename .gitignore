@@ -1,0 +1,11 @@
+*~
+__pycache__/*
+.ipynb_checkpoints/*
+*.pyc
+*.log
+*.out
+bak/*
+attick/*
+results/*
+config.json
+proxies.ini
