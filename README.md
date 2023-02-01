@@ -1,4 +1,4 @@
-# Aapa mire wetness index retrieval with Sentinelhub Batch statistical API
+# Aapa mire wetness metrics retrieval with Sentinelhub Batch statistical API
 
 This repository contains data preparation tools for article 
 
