@@ -1,21 +1,19 @@
 # Aapa mire wetness index retrieval with Sentinelhub Batch statistical API
 
-Data preparation tools for article 
+This repository contains data preparation tools for article 
 
-*Jussila et. al. (2023)*: _Quantifying wetness variation in aapa mires with Sentinel-2: towards improved monitoring of an EU priority habitat_ 
+*Jussila et. al. (2023)*: _Quantifying wetness variability in aapa mires with Sentinel-2: towards improved monitoring of an EU priority habitat_ 
 
-Monitoring wetness variation and drought response of boreal aapa mires with Sentinel 2 optical satellite imagery 
-
-Demonstration of retrieving zonal statistics of Sentinel-2 MSI L2 indexes using [Sentinel-hub Batch Statistical API](https://docs.sentinel-hub.com/api/latest/api/batch-statistical/)
+Following is a demonstration of retrieving zonal statistics of Sentinel-2 MSI L2 indexes using [Sentinel-hub Batch Statistical API](https://docs.sentinel-hub.com/api/latest/api/batch-statistical/)
 
 
 # Goals
 
-Retrieve regional statistics as time-series for a set of aapa-mires over northern Finland for years 2017-2020. Results include output from 2 surface type classification algorithms and selected reflectance bands.
+Retrieve regional statistics as time-series for a set of boreal aapa mires over northern Finland for years 2017-2020. Results include output from 2 surface type classification algorithms and statistics of selected reflectance bands to indicate wetness in mires.
 
-As available cloud masking algorithms are not optimal with regards to cloud shadows, we need cloud coverage percentage of extended boundingbox of each AOI to filter out cases where AOI may be affected by cloud shadow artifact.
+As available cloud masking algorithms are not optimal with regards to cloud shadows, cloud coverage percentage of extended boundingbox of each AOI is needed to filter out cases where AOI may be affected by cloud shadow artifact.
 
-# Preprocessing of the aapa-mire gis dataset
+# Preprocessing of the aapa mire gis dataset
 
 ## Coordinate systems
 Sentinelhub does not support Finnish national system  ETRS89 / TM35FIN(E,N)(EPSG:307). For this study we have selected WGS 84 / UTM zone 35N  (EPSG:32635) as the default crs. 
@@ -45,7 +43,7 @@ Sentinelhub supports only geopackage. Batch Statistical API does not support dat
 
 ## Number of objects
 
-"Swamps classified as difficult, dangerous, and impossible to cross"
+"Swamps classified as difficult, dangerous, and impossible to cross" located in open mires of over 10ha in size in Finnish aapa mire occurrence zone:
 
 * Total number  11917
 * Over 10 km2 43
@@ -53,9 +51,11 @@ Sentinelhub supports only geopackage. Batch Statistical API does not support dat
 * 0.1-1 km2 5352
 * Under 0.1 km2 5785
 
+In the Jussila et al. (2023) paper, analysis was focused on pristine mires belonging to Natura 2000 conservation network and mires under 0.1km2 in size or lacking late summer observations were excluded (n=2346).
+
 ## Temporal coverage
 
-Processing was done yearly from the beginning of April to the end of September, for year 2017-2020
+Processing was done yearly from the beginning of April to the end of September, for years 2017-2020.
 
 ## Processing costs
 
@@ -74,16 +74,16 @@ Total cost of processing of 4 year time series is roughly 600€.
 
 Processing needs to be done for each year and for each polygon dataset.
 
-Template for creating and runnign the processing request is given in notebook [statistics_batch.ipynb](statistics_batch.ipynb)
+Template for creating and running the processing request is given in notebook [statistics_batch.ipynb](statistics_batch.ipynb)
 
 
 ## Authentication
 
-Auhentication keys are defined by renaming the file  [config.json.template](config.json.template) as ./config.json filling in the relevate secrets. Both Sentinel-hub and AWS keys are mandatory as results are stored on AWS S3 bucket
+Auhentication keys are defined by renaming the file  [config.json.template](config.json.template) as ./config.json filling in the relevant secrets. Both Sentinel-hub and AWS keys are mandatory as results are stored on AWS S3 bucket
 
 ## Classifiers and statistics (sentinel-hub payload)
 
-Models for detecting water-saturated mire surfaces were trained with supervised classification in R using ‘rpart’ (Recursive Partitioning and Regression Trees) package. Aerial images derived from Finnish National Land Survey (NLS) were used to compose a set of training data points including various wet and drier mire surfaces. Sixteen conservation areas from different parts of aapa mire occurrence zone were selected to represent regional variation, and in each site 53 to 138 training points were manually classified. Points were selected to represent a range of surfaces from open water and sparsely vegetated wet flarks to drier lawn- and hummock-level surfaces and mire margins with sparse tree-cover. Some of the points represented wet surface dominated mixed pixels, to improve water detection in mires with dense surface structure and small-sized water pools. Additional dry pixels from nearby peat extraction sites were included to represent very dry, unvegetated peat surfaces, which were absent or uncertain in aerial images of N2K sites. Final training dataset consisted of 1460 points representing June or July situation in various years (Classified training points and imagery dates in Zenodo: link). 
+Classification of surfaces was done in order to detect and estimate area of water-saturated surfaces in aapa mires. Classification models were trained with supervised classification in R using ‘rpart’ (Recursive Partitioning and Regression Trees) package. Aerial images derived from Finnish National Land Survey (NLS) were used to compose a set of training data points including various wet and drier mire surfaces. Sixteen conservation areas from different parts of aapa mire occurrence zone were selected to represent regional variation, and in each site 53 to 138 training points were manually classified. Points were selected to represent a range of surfaces from open water and sparsely vegetated wet flarks to drier lawn- and hummock-level surfaces and mire margins with sparse tree-cover. Some of the points represented wet surface dominated mixed pixels, to improve water detection in mires with dense surface structure and small-sized water pools. Additional dry pixels from nearby peat extraction sites were included to represent very dry, unvegetated peat surfaces, which were absent or uncertain in aerial images of N2K sites. Final training dataset consisted of 1460 points representing June or July situation in various years (Classified training points and imagery dates provided in Zenodo: DOI 10.5281/zenodo.7595012). 
 
 Sentinel-2 satellite images used to train the model were selected to maximally correspond with the collection dates of aerial imagery and were aligned with them with Q-gis Georeferencer. Reflectance values of Sentinel-2 bands and a set of common vegetation (NDVI) and moisture indices (mNDWI-b11,mNDWI-b12, NDWI-McFeeters, NDMI) were extracted and calculated for training points. Two decision tree models were trained, one (CL2) classifying surfaces to wet and drier surfaces, and the other (Cl3) having an additional third class for open water surfaces. CL2 was trained with full set of points (1460), whereas in training of CL3 mixed pixels were excluded. Selected models had following rpart -calls:  
 ````
@@ -94,13 +94,9 @@ CL3 <- rpart(formula = class3obs ~ ., data = train, method = "class", control = 
 ````
 Overall accuracies were 93.6 and 95.5%, and Kappa values 83.8 and 90.1 for the two models. Seasonally (visual inspection) CL3 showed profound changes in mire surfaces, whereas CL2 indicated more moderate changes. Both models, particularly CL3, had a tendency of misclassifying tree-covered pixels as wet mire surfaces.  
 
-The two classification algorithms were recoded as SentinelHub evalscripts, defined in sumi-statistics-evalscript.js. CL2-model -based metrics were used in Jussila et al. (2023) article, “Quantifying wetness variation in aapa mires with Sentinel-2: towards improved monitoring of an EU priority habitat”.  
+The two classification algorithms were recoded as SentinelHub evalscripts, defined in [sumi-statistics-evalscript.js](./js/sumi-statistics-evalscript.js). CL2-model -based metrics were used in the Jussila et al. (2023) paper.   
 
 Classifier decision trees are demonstrated in following graphs: 
-
-Classification algorithms are defined in [sumi-statistics-evalscript.js](./js/sumi-statistics-evalscript.js)
-
-Class names are demonstrated in following graphs:
 
 ### Two-phase classification = CL2 
 
@@ -111,16 +107,16 @@ Class names are demonstrated in following graphs:
 
 ## Additional cloud coverage processor
 
-Avaible cloud masking algorithm do not detect cloud shadows reliably. Therefore we compute also cloud coverage percentage for a extended boundingbox around each polygon. Cloud percentage of this boundingbox is then used to filter out cases where potential shadows may affect the otherwise cloud-free polygon region.
+Avaible cloud masking algorithm do not detect cloud shadows reliably, and tends to misclassify mire pools as shadows. Therefore we compute also cloud coverage percentage for a extended boundingbox around each polygon. Cloud percentage of this boundingbox is then used to filter out cases where potential shadows may affect the otherwise cloud-free polygon region.
 Extended boundingbox includes 0.5km buffers to east-west-north and 4km to south.
 
-These boundingboxes are processed in 100m resolution (rough cloudiness estimate is enough)
+These bounding boxes are processed in 100m resolution (rough cloudiness estimate is enough).
 
 * [sumi-cloudmask-evalscript.js](./js/sumi-cloudmask-evalscript.js)
 
-## Postprocessing of Batch Statistical API resuls 
+## Post-processing of Batch Statistical API resuls 
 
-API does not directly provide methods for retrieving the pixel counts of individual classes. Pixels counts can be retrieved by requesting histogram of the results and de-codig values in a postprocessing step. 
+API does not directly provide methods for retrieving the pixel counts of individual classes. Pixels counts can be retrieved by requesting histogram of the results and de-coding values in a postprocessing step. 
 
 Region-wise conversion of the raw (json) results to pandas-compatible CSV-format is demonstrated in notebook
 
@@ -128,7 +124,7 @@ Region-wise conversion of the raw (json) results to pandas-compatible CSV-format
 
 ## Input and result datasets
 
-Polygons (in geopackage format) must stored in a AWS S3 bucket in eu-central-1 region that Sentinel-hub can read. Results are also written to given AWS S3 bucket.
+Polygons (in geopackage format) must be stored in a AWS S3 bucket in eu-central-1 region that Sentinel-hub can read. Results are also written to given AWS S3 bucket.
 
 For more details, see Sentinelhub documentation https://docs.sentinel-hub.com/api/latest/api/batch-statistical/#aws-bucket-access
 
@@ -139,9 +135,11 @@ aws --profile myprofile s3 sync s3://<mybcuket> .
 ````
 
 
-# [TBD] Outlier detection and filtering 
+## Data filtering and aggregation
 
+Later post-processing of resulting data was executed in R. Information of cloud percentage in bounding box and extended bounding box (cloud shadows) were used to filter out bad-quality observations: limit of 1% was used for bounding box cloud coverage, and 10% for the larger, extended bounding box. 
 
+Filtered observations were aggregated to month level information. Aggregation was done in two phases to avoid skewness towards times with more observations, by calculating first averages for two-week periods, and then taking the monthly averages of these.
 
 
 
