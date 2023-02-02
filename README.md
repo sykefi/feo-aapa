@@ -15,6 +15,8 @@ As available cloud masking algorithms are not optimal with regards to cloud shad
 
 # Preprocessing of the aapa mire gis dataset
 
+Preprocessed dataset can be found in [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7595012.svg)](https://doi.org/10.5281/zenodo.7595012)
+
 ## Coordinate systems
 Sentinelhub does not support Finnish national system  ETRS89 / TM35FIN(E,N)(EPSG:307). For this study we have selected WGS 84 / UTM zone 35N  (EPSG:32635) as the default crs. 
 
