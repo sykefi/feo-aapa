@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/595070066.svg)](https://zenodo.org/badge/latestdoi/595070066)
+
 # Aapa mire wetness metrics retrieval with Sentinelhub Batch statistical API
 
 This repository contains data preparation tools for article 
